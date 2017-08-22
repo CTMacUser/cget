@@ -10,7 +10,9 @@ enum ReturnCode: Int32 {
 }
 
 HeliumLogger.use()
-let main = command { (urlArgument: String) in
+let main = command(
+    Argument<String>("URL", description: "Location of the resource to be downloaded")
+) { (urlArgument: String) in
     // Sanity-check the command-line arguments.
     guard let url = URL(string: urlArgument) else {
         Log.error("Argument \"\(urlArgument)\" cannot be converted to a URL.")
