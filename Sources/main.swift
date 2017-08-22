@@ -11,8 +11,9 @@ enum ReturnCode: Int32 {
 
 HeliumLogger.use()
 let main = command(
+    Flag("suppress-header", description: "Do not write a MIME content header before the data", default: false),
     Argument<String>("URL", description: "Location of the resource to be downloaded")
-) { (urlArgument: String) in
+) { (suppressHeader: Bool, urlArgument: String) in
     // Sanity-check the command-line arguments.
     guard let url = URL(string: urlArgument) else {
         Log.error("Argument \"\(urlArgument)\" cannot be converted to a URL.")
@@ -59,15 +60,21 @@ let main = command(
         }
 
         // If the result is preparable text,...
-        print("Content-Type: \(response.mimeType ?? "application/octet-stream")")
+        if !suppressHeader {
+            print("Content-Type: \(response.mimeType ?? "application/octet-stream")")
+        }
         if haveText, let textEncoding = encoding, let dataString = String(data: data, encoding: textEncoding) {
             // ...print it out as such,...
-            print()
+            if !suppressHeader {
+                print()
+            }
             print(dataString)
         } else {
             // ...otherwise print it as Base-64 binary.
-            print("Content-Transfer-Encoding: base64")
-            print()
+            if !suppressHeader {
+                print("Content-Transfer-Encoding: base64")
+                print()
+            }
             print(data.base64EncodedString(options: .lineLength64Characters))
         }
     }
