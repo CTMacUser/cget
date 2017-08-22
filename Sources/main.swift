@@ -12,8 +12,9 @@ enum ReturnCode: Int32 {
 HeliumLogger.use()
 let main = command(
     Flag("suppress-header", description: "Do not write a MIME content header before the data", default: false),
+    Flag("raw", description: "Write binary data without text conversion; implies '--suppress-header'", default: false),
     Argument<String>("URL", description: "Location of the resource to be downloaded")
-) { (suppressHeader: Bool, urlArgument: String) in
+) { (suppressHeader: Bool, rawBinary: Bool, urlArgument: String) in
     // Sanity-check the command-line arguments.
     guard let url = URL(string: urlArgument) else {
         Log.error("Argument \"\(urlArgument)\" cannot be converted to a URL.")
@@ -40,6 +41,12 @@ let main = command(
         }
         guard let data = $0 else {
             Log.info("(no data)")
+            return
+        }
+
+        // In binary mode, send the data directly to standard output, without a MIME header or any text conversion.
+        guard !rawBinary else {
+            FileHandle.standardOutput.write(data)
             return
         }
 
